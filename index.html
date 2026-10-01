@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step3D — Annotation de la marche</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Colonne de gauche : sujets / visites / essais -->
+    <aside id="sidebar">
+      <div class="logo"><span class="logo-badge">S</span>Step3D</div>
+      <div class="section-label">Sujets</div>
+      <nav id="tree" aria-label="Sujets et essais"></nav>
+      <div class="params-card" id="params-card">
+        <div class="params-title">Paramètres de l'essai</div>
+        <div class="param-row"><span>Cadence</span><b id="p-cadence">—</b></div>
+        <div class="param-row"><span>Appui G</span><b id="p-appui-g">—</b></div>
+        <div class="param-row"><span>Appui D</span><b id="p-appui-d">—</b></div>
+      </div>
+    </aside>
+
+    <!-- Colonne centrale : vue 3D + lecteur -->
+    <main id="main">
+      <header id="topbar">
+        <div>
+          <h1 id="essai-title">Chargement…</h1>
+          <div id="essai-sub">&nbsp;</div>
+        </div>
+        <div class="top-actions">
+          <button id="btn-export" class="btn-ghost">⤓ Export Excel</button>
+          <button id="btn-save" class="btn-primary" disabled>Enregistrer</button>
+        </div>
+      </header>
+
+      <div id="stage">
+        <canvas id="gl"></canvas>
+        <div id="infobox" class="mono">
+          <div id="info-ligne1">Image — / —</div>
+          <div>Pied gauche&nbsp;: <span id="info-pg">—</span></div>
+          <div>Pied droit&nbsp;&nbsp;: <span id="info-pd">—</span></div>
+        </div>
+        <div id="legend">
+          <span class="chip"><i class="dot dot-g"></i>Gauche</span>
+          <span class="chip"><i class="dot dot-d"></i>Droit</span>
+          <span class="chip"><i class="dot dot-b"></i>Bassin</span>
+        </div>
+        <div id="loading" hidden>Chargement de l'essai…</div>
+        <div id="toast" hidden></div>
+      </div>
+
+      <footer id="player">
+        <div id="player-controls">
+          <button id="bt-start" title="Retour au début (Début)">⏮</button>
+          <button id="bt-prev" title="Image précédente (←)">◀1</button>
+          <button id="bt-play" class="play" title="Lecture / pause (Espace)">▶</button>
+          <button id="bt-next" title="Image suivante (→)">1▶</button>
+          <button id="bt-end" title="Aller à la fin (Fin)">⏭</button>
+          <span id="time-label" class="mono">0,00 s</span>
+        </div>
+        <div id="speeds">
+          <button data-speed="0.25">¼×</button>
+          <button data-speed="0.5">½×</button>
+          <button data-speed="1" class="on">1×</button>
+          <button data-speed="2">2×</button>
+        </div>
+        <div id="timeline-wrap">
+          <span class="lane-label">G</span>
+          <canvas id="tl-g"></canvas>
+          <span class="lane-label">D</span>
+          <canvas id="tl-d"></canvas>
+        </div>
+      </footer>
+    </main>
+
+    <!-- Colonne de droite : événements -->
+    <aside id="panel">
+      <section class="card">
+        <div class="card-head">
+          <span class="card-title">Événements</span>
+          <span id="ev-count">0</span>
+        </div>
+        <div id="ev-buttons">
+          <button class="ev-btn ev-g" data-pied="gauche" data-type="pose">▼ Pose G</button>
+          <button class="ev-btn ev-d" data-pied="droit" data-type="pose">▼ Pose D</button>
+          <button class="ev-btn ev-g" data-pied="gauche" data-type="lever">▲ Lever G</button>
+          <button class="ev-btn ev-d" data-pied="droit" data-type="lever">▲ Lever D</button>
+        </div>
+        <ul id="ev-list"></ul>
+        <div id="ev-tools">
+          <button id="btn-auto" class="btn-ghost small">Détecter (contact_sol)</button>
+          <button id="btn-clear" class="btn-ghost small">Tout effacer</button>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-head"><span class="card-title">Raccourcis</span></div>
+        <table id="shortcuts">
+          <tr><td><kbd>Espace</kbd></td><td>lecture / pause</td></tr>
+          <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>image précédente / suivante</td></tr>
+          <tr><td><kbd>Z</kbd> <kbd>Q</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>déplacer la vue 3D</td></tr>
+          <tr><td><kbd>1</kbd> <kbd>2</kbd></td><td>pose / lever — pied gauche</td></tr>
+          <tr><td><kbd>3</kbd> <kbd>4</kbd></td><td>pose / lever — pied droit</td></tr>
+          <tr><td><kbd>Ctrl Z</kbd></td><td>annuler</td></tr>
+        </table>
+      </section>
+    </aside>
+  </div>
+
+  <script src="config.js"></script>
+  <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.170.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

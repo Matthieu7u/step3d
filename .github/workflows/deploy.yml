@@ -1,0 +1,46 @@
+# À chaque push sur main, le site est mis en ligne sur https://sps-g12-step3d.professeurpetitchat.com/
+# Le dépôt doit être PUBLIC. Ne modifiez pas ce fichier.
+name: Mettre en ligne
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: mise-en-ligne
+  cancel-in-progress: true
+
+jobs:
+  en-ligne:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Mettre le site en ligne
+        env:
+          SITE: "g12"
+          PROJET: "step3d"
+          PORTAIL: "https://culturenum.professeurpetitchat.com"
+        run: |
+          set -eo pipefail
+          CORPS=$(printf '{"slot":"%s","projet":"%s","depot":"%s","commit":"%s"}' "$SITE" "$PROJET" "$GITHUB_REPOSITORY" "$GITHUB_SHA")
+          CODE=$(curl -sS -o rep.json -w '%{http_code}' -X POST "$PORTAIL/deploy" -H 'Content-Type: application/json' -d "$CORPS")
+          if [ "$CODE" != "202" ]; then
+            echo "::error::$(python3 -c 'import json;print(json.load(open("rep.json")).get("erreur","refus du serveur"))' 2>/dev/null || cat rep.json)"
+            exit 1
+          fi
+          SUIVI=$(python3 -c 'import json;print(json.load(open("rep.json"))["suivi"])')
+          VUES=0
+          for i in $(seq 1 60); do
+            sleep 3
+            curl -fsS "$SUIVI" -o etat.json
+            STATUT=$(python3 -c 'import json;print(json.load(open("etat.json"))["statut"])')
+            python3 -c 'import json;print(json.load(open("etat.json"))["journal"],end="")' > journal.txt
+            TOTAL=$(wc -l < journal.txt)
+            if [ "$TOTAL" -gt "$VUES" ]; then tail -n +"$((VUES+1))" journal.txt; VUES=$TOTAL; fi
+            case "$STATUT" in
+              ok)     echo "Site en ligne : $(python3 -c 'import json;print(json.load(open("etat.json"))["url"])')"; exit 0 ;;
+              erreur) echo "::error::La mise en ligne a échoué (voir le journal ci-dessus)."; exit 1 ;;
+            esac
+          done
+          echo "::error::Le serveur n'a pas répondu à temps."; exit 1
